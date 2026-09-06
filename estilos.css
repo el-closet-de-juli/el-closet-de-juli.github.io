@@ -1,0 +1,399 @@
+/* ==========================================================================
+   EL CLOSET DE JULI - Estilos
+   --------------------------------------------------------------------------
+   Paleta heredada de la identidad de Juliana Barquero, con la jerarquia
+   invertida: terracota y lila al frente, salvia relegada a detalle.
+   Para volver al calco exacto de la marca de enfermeria, intercambiar los
+   valores de --acento y --detalle mas abajo.
+   ========================================================================== */
+
+
+/* --------------------------------------------------------------------------
+   1. TOKENS
+   -------------------------------------------------------------------------- */
+
+:root {
+  /* Color */
+  --crema:          #F6F1E7;  /* fondo general */
+  --crema-hueso:    #FBF8F2;  /* fondo de ficha, un tono mas claro */
+  --acento:         #D08C6B;  /* terracota - color principal aqui */
+  --acento-oscuro:  #B0714F;  /* terracota para estados hover y foco */
+  --detalle:        #6E8F7F;  /* salvia - ahora secundario */
+  --lila:           #B79DBA;
+  --lila-texto:     #8B6F92;
+  --tinta:          #2C3833;  /* texto principal */
+  --tinta-suave:    #6B7A73;  /* texto secundario */
+  --linea:          #DED5C6;  /* bordes y separadores */
+
+  /* Tipografia */
+  --serif:  "Cormorant Garamond", Georgia, serif;
+  --sans:   "Jost", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  /* Espaciado */
+  --gap:    1.5rem;
+  --margen: 1.25rem;
+}
+
+
+/* --------------------------------------------------------------------------
+   2. BASE
+   -------------------------------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--crema);
+  color: var(--tinta);
+  font-family: var(--sans);
+  font-weight: 300;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+}
+
+/* Foco visible para navegacion por teclado.
+   No eliminar: es un requisito de accesibilidad (WCAG 2.1, criterio 2.4.7). */
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--acento-oscuro);
+  outline-offset: 3px;
+}
+
+.contenedor {
+  width: 100%;
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 0 var(--margen);
+}
+
+
+/* --------------------------------------------------------------------------
+   3. ENCABEZADO
+   -------------------------------------------------------------------------- */
+
+.encabezado {
+  padding: 3.5rem 0 2rem;
+  text-align: center;
+}
+
+.marca {
+  width: 54px;
+  height: auto;
+  margin: 0 auto 1.25rem;
+  color: var(--detalle);
+}
+
+.encabezado h1 {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: clamp(2.6rem, 8vw, 4rem);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1.05;
+}
+
+.lema {
+  max-width: 34ch;
+  margin: 0.75rem auto 0;
+  color: var(--tinta-suave);
+  font-size: 0.95rem;
+}
+
+/* Aviso funcional: explica como funciona el catalogo antes de que
+   la persona tenga que deducirlo. */
+.nota-uso {
+  max-width: 46ch;
+  margin: 1.75rem auto 0;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--linea);
+  color: var(--tinta-suave);
+  font-size: 0.85rem;
+}
+
+.nota-uso strong {
+  color: var(--lila-texto);
+  font-weight: 500;
+}
+
+
+/* --------------------------------------------------------------------------
+   4. FILTROS
+   -------------------------------------------------------------------------- */
+
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 2rem 0 2.5rem;
+}
+
+.filtro {
+  padding: 0.4rem 0.95rem;
+  border: 1px solid var(--linea);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--tinta-suave);
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  font-weight: 300;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.filtro:hover {
+  color: var(--tinta);
+  border-color: var(--tinta-suave);
+}
+
+.filtro[aria-pressed="true"] {
+  background: var(--tinta);
+  border-color: var(--tinta);
+  color: var(--crema);
+}
+
+
+/* --------------------------------------------------------------------------
+   5. REJILLA DE PRENDAS
+   -------------------------------------------------------------------------- */
+
+.rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 2.5rem var(--gap);
+  padding-bottom: 4rem;
+  list-style: none;
+  margin: 0;
+}
+
+.prenda {
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- Fotografia --- */
+
+.prenda__foto {
+  position: relative;
+  aspect-ratio: 3 / 4;         /* proporcion vertical, natural para ropa */
+  overflow: hidden;
+  background: var(--crema-hueso);
+  border: 1px solid var(--linea);
+}
+
+.prenda__foto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Marcador que aparece cuando todavia no hay fotografia cargada. */
+.prenda__sin-foto {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  gap: 0.35rem;
+  text-align: center;
+  color: var(--tinta-suave);
+  font-size: 0.75rem;
+}
+
+.prenda__sin-foto span:first-child {
+  font-family: var(--serif);
+  font-size: 1.6rem;
+  color: var(--linea);
+}
+
+/* Etiqueta de referencia, sobre la foto.
+   Es informacion util: es el codigo que la clienta escribe por WhatsApp. */
+.prenda__ref {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 0.3rem 0.6rem;
+  background: var(--crema);
+  border-right: 1px solid var(--linea);
+  border-bottom: 1px solid var(--linea);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  color: var(--tinta-suave);
+}
+
+/* Estado vendido: la prenda se queda visible pero apagada. */
+.prenda--vendida .prenda__foto img {
+  filter: grayscale(1);
+  opacity: 0.45;
+}
+
+.prenda__vendida {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: 0.45rem;
+  background: var(--tinta);
+  color: var(--crema);
+  text-align: center;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+}
+
+/* --- Ficha de texto --- */
+
+.prenda__ficha {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding-top: 0.9rem;
+}
+
+.prenda__nombre {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 1.3rem;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+/* Talla y estado: los dos datos que mas se preguntan. */
+.prenda__datos {
+  margin: 0.45rem 0 0;
+  color: var(--lila-texto);
+  font-size: 0.8rem;
+}
+
+.prenda__descripcion {
+  margin: 0.6rem 0 0;
+  color: var(--tinta-suave);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.prenda__cierre {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: auto;
+  padding-top: 1rem;
+}
+
+.prenda__precio {
+  font-family: var(--serif);
+  font-size: 1.25rem;
+  color: var(--acento-oscuro);
+}
+
+.prenda__precio--consultar {
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  color: var(--tinta-suave);
+}
+
+/* --- Boton de contacto --- */
+
+.boton-wa {
+  flex-shrink: 0;
+  padding: 0.5rem 1rem;
+  background: var(--acento);
+  color: #fff;
+  border: none;
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  font-weight: 400;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.boton-wa:hover {
+  background: var(--acento-oscuro);
+}
+
+.prenda--vendida .boton-wa {
+  background: transparent;
+  border: 1px solid var(--linea);
+  color: var(--tinta-suave);
+}
+
+.prenda--vendida .boton-wa:hover {
+  border-color: var(--tinta-suave);
+  color: var(--tinta);
+}
+
+
+/* --------------------------------------------------------------------------
+   6. ESTADO VACIO
+   -------------------------------------------------------------------------- */
+
+.vacio {
+  padding: 4rem 0;
+  text-align: center;
+  color: var(--tinta-suave);
+}
+
+.vacio p {
+  margin: 0 0 1rem;
+}
+
+
+/* --------------------------------------------------------------------------
+   7. PIE
+   -------------------------------------------------------------------------- */
+
+.pie {
+  padding: 2.5rem 0 3.5rem;
+  border-top: 1px solid var(--linea);
+  text-align: center;
+  color: var(--tinta-suave);
+  font-size: 0.85rem;
+}
+
+.pie a {
+  color: var(--lila-texto);
+  text-decoration-color: var(--lila);
+  text-underline-offset: 3px;
+}
+
+
+/* --------------------------------------------------------------------------
+   8. MOVIL
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 480px) {
+  .rejilla {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.75rem 1rem;
+  }
+
+  .prenda__nombre  { font-size: 1.1rem; }
+  .prenda__cierre  { flex-direction: column; align-items: stretch; gap: 0.5rem; }
+  .boton-wa        { text-align: center; }
+  .encabezado      { padding-top: 2.5rem; }
+}
+
+
+/* --------------------------------------------------------------------------
+   9. MOVIMIENTO REDUCIDO
+   --------------------------------------------------------------------------
+   Respeta la preferencia del sistema operativo de quien navega.
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
