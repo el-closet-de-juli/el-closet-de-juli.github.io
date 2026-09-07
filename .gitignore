@@ -1,0 +1,42 @@
+# ============================================================================
+# .gitignore - El Closet de Juli
+# Le dice a Git que archivos NO subir al repositorio publico.
+# ============================================================================
+
+# --- Basura de Windows y OneDrive ---
+Thumbs.db
+ehthumbs.db
+desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# --- Temporales de Office ---
+~$*
+
+# --- macOS, por si algun archivo llega de otra maquina ---
+.DS_Store
+
+# --- Fotos sin procesar: pesadas y no van al sitio ---
+img/originales/
+img/sin-comprimir/
+*.psd
+*.CR2
+*.NEF
+*.ARW
+
+# --- Notas internas: EL REPOSITORIO ES PUBLICO ---
+notas-internas/
+costos.*
+inventario-privado.*
+clientas.*
+*.env
+*.key
+
+# --- Editores ---
+.vscode/
+*.code-workspace
+
+# NOTA: .gitignore solo afecta archivos que Git todavia no rastrea. Si un
+# archivo ya fue subido, agregarlo aqui no lo saca: hay que correr
+# 'git rm --cached <archivo>' y commitear. Y aun asi sigue en el historial,
+# asi que un secreto filtrado se rota, no se borra.

@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="es-CR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panel — El Closet de Juli</title>
+<meta name="robots" content="noindex, nofollow">
+
+<!-- ==========================================================================
+     PANEL DE ADMINISTRACION - El Closet de Juli
+     --------------------------------------------------------------------------
+     Se abre con doble clic desde la computadora. NO se enlaza desde el sitio.
+
+     Que hace:  agregar, editar, duplicar, borrar prendas y cambiar su
+                situacion; al final genera el archivo js/datos.js completo.
+     Que NO hace: publicar. Publicar sigue siendo subir los archivos a GitHub.
+
+     Todo ocurre dentro del navegador. No hay servidor, no hay red, ningun
+     dato sale de esta computadora.
+
+     Este archivo se sube al repositorio publico igual que el resto: no
+     escribir aqui contraseñas, costos de compra ni notas internas.
+     ========================================================================== -->
+
+<style>
+  :root {
+    --crema:#F6F1E7; --crema-hueso:#FBF8F2; --acento:#D08C6B; --acento-oscuro:#B0714F;
+    --detalle:#6E8F7F; --lila:#B79DBA; --tinta:#2C3833; --tinta-suave:#6B7A73;
+    --linea:#DED5C6; --alerta:#A8452F; --radio:6px;
+    --serif:"Cormorant Garamond",Georgia,serif;
+    --sans:"Jost",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  body{margin:0;background:var(--crema);color:var(--tinta);font-family:var(--sans);
+       font-weight:300;font-size:15px;line-height:1.55}
+  h1,h2,h3{font-family:var(--serif);font-weight:500;margin:0;line-height:1.2}
+  a{color:var(--acento-oscuro)}
+  button{font-family:var(--sans);cursor:pointer}
+  a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{
+    outline:2px solid var(--acento-oscuro);outline-offset:2px}
+  .envoltura{max-width:1060px;margin:0 auto;padding:0 1.25rem 5rem}
+
+  /* --- Barra superior --- */
+  .barra{position:sticky;top:0;z-index:20;background:var(--crema-hueso);
+         border-bottom:1px solid var(--linea);padding:0.9rem 0;margin-bottom:1.5rem}
+  .barra__caja{max-width:1060px;margin:0 auto;padding:0 1.25rem;display:flex;
+               align-items:center;gap:0.75rem;flex-wrap:wrap}
+  .barra h1{font-size:1.4rem;margin-right:auto}
+  .barra h1 span{display:block;font-family:var(--sans);font-size:0.68rem;
+                 letter-spacing:0.12em;text-transform:uppercase;color:var(--tinta-suave)}
+
+  /* --- Botones --- */
+  .btn{border:1px solid var(--linea);background:none;color:var(--tinta);
+       padding:0.5rem 0.95rem;border-radius:var(--radio);font-size:0.82rem;
+       transition:border-color 160ms,color 160ms,background 160ms}
+  .btn:hover{border-color:var(--acento);color:var(--acento-oscuro)}
+  .btn--principal{background:var(--acento);border-color:var(--acento);color:#fff}
+  .btn--principal:hover{background:var(--acento-oscuro);border-color:var(--acento-oscuro);color:#fff}
+  .btn--peligro{color:var(--alerta);border-color:#E4C3BA}
+  .btn--peligro:hover{background:var(--alerta);border-color:var(--alerta);color:#fff}
+  .btn--mini{padding:0.28rem 0.55rem;font-size:0.72rem}
+
+  /* --- Bloques --- */
+  .bloque{background:var(--crema-hueso);border:1px solid var(--linea);
+          border-radius:var(--radio);padding:1.15rem 1.25rem;margin-bottom:1.25rem}
+  .bloque > h2{font-size:1.15rem;margin-bottom:0.15rem}
+  .bloque__nota{font-size:0.78rem;color:var(--tinta-suave);margin:0 0 1rem}
+  details.bloque summary{cursor:pointer;font-family:var(--serif);font-size:1.15rem}
+  details.bloque[open] summary{margin-bottom:1rem}
+
+  /* --- Formularios --- */
+  .campos{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:0.9rem}
+  .campo{display:flex;flex-direction:column;gap:0.25rem}
+  .campo--ancho{grid-column:1/-1}
+  label{font-size:0.72rem;letter-spacing:0.09em;text-transform:uppercase;color:var(--tinta-suave)}
+  .ayuda{font-size:0.72rem;color:var(--tinta-suave);font-style:italic}
+  input[type=text],input[type=number],input[type=date],select,textarea{
+    font-family:var(--sans);font-size:0.9rem;font-weight:300;color:var(--tinta);
+    background:var(--crema);border:1px solid var(--linea);border-radius:4px;
+    padding:0.5rem 0.6rem;width:100%}
+  textarea{resize:vertical;min-height:74px;line-height:1.5}
+  input:disabled{opacity:0.45}
+  .fila-casilla{display:flex;align-items:center;gap:0.5rem;margin-top:0.4rem}
+  .fila-casilla label{text-transform:none;letter-spacing:0;font-size:0.85rem;color:var(--tinta)}
+
+  /* --- Lista --- */
+  .herramientas{display:flex;gap:0.6rem;flex-wrap:wrap;margin-bottom:1rem}
+  .herramientas input,.herramientas select{width:auto;min-width:180px}
+  .conteo{font-size:0.78rem;color:var(--tinta-suave);align-self:center;margin-left:auto}
+
+  .prenda{display:flex;gap:0.85rem;align-items:flex-start;padding:0.8rem 0;
+          border-bottom:1px solid var(--linea)}
+  .prenda:last-child{border-bottom:none}
+  .prenda__mini{flex:0 0 54px;width:54px;height:72px;border-radius:4px;overflow:hidden;
+                background:var(--linea);display:flex;align-items:center;justify-content:center;
+                font-family:var(--serif);color:var(--acento);font-size:0.95rem}
+  .prenda__mini img{width:100%;height:100%;object-fit:cover}
+  .prenda__datos{flex:1 1 auto;min-width:0}
+  .prenda__nombre{font-family:var(--serif);font-size:1.08rem}
+  .prenda__meta{font-size:0.75rem;color:var(--tinta-suave)}
+  .prenda__acciones{display:flex;gap:0.35rem;flex-wrap:wrap;align-items:center}
+  .prenda--vendida .prenda__nombre,.prenda--vendida .prenda__meta{opacity:0.55}
+  .prenda--vendida .prenda__mini img{filter:grayscale(1)}
+
+  .marca-sit{display:inline-block;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;
+             padding:0.15rem 0.45rem;border-radius:3px;border:1px solid var(--linea);margin-right:0.3rem}
+  .marca-sit--nuevo{background:var(--acento);color:#fff;border-color:var(--acento)}
+  .marca-sit--apartado{background:var(--lila);color:#3B2C3E;border-color:var(--lila)}
+  .marca-sit--vendido{background:var(--tinta);color:var(--crema);border-color:var(--tinta)}
+
+  /* --- Modales --- */
+  .fondo{position:fixed;inset:0;background:rgba(44,56,51,0.55);z-index:40}
+  .modal{position:fixed;inset:auto;left:50%;top:50%;transform:translate(-50%,-50%);
+         z-index:50;width:min(680px,calc(100vw - 2rem));max-height:calc(100vh - 2rem);
+         overflow-y:auto;background:var(--crema-hueso);border:1px solid var(--linea);
+         border-radius:var(--radio);padding:1.5rem}
+  .modal h2{font-size:1.4rem;margin-bottom:1rem}
+  .modal__pie{display:flex;gap:0.6rem;justify-content:flex-end;margin-top:1.35rem;flex-wrap:wrap}
+
+  /* --- Mensajes --- */
+  .errores{border:1px solid var(--alerta);background:#FBEEEA;color:#7A3123;
+           border-radius:4px;padding:0.7rem 0.9rem;font-size:0.83rem;margin-bottom:1rem}
+  .errores ul{margin:0.35rem 0 0;padding-left:1.1rem}
+  .advertencias{border:1px solid var(--acento);background:#FDF3EC;border-radius:4px;
+                padding:0.6rem 0.85rem;font-size:0.78rem;margin-top:0.6rem;color:#7A4A31}
+  .advertencias ul{margin:0.3rem 0 0;padding-left:1.1rem}
+  .aviso{position:fixed;left:50%;bottom:1.25rem;transform:translateX(-50%);z-index:60;
+         background:var(--tinta);color:var(--crema);padding:0.65rem 1.1rem;border-radius:999px;
+         font-size:0.82rem;box-shadow:0 2px 12px rgba(44,56,51,0.25)}
+  .privacidad{font-size:0.76rem;color:var(--tinta-suave);border-left:2px solid var(--detalle);
+              padding-left:0.85rem;margin:0 0 1.25rem}
+  .salida{width:100%;min-height:220px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+          font-size:0.74rem;line-height:1.45}
+  .sin-nada{text-align:center;color:var(--tinta-suave);padding:2.5rem 1rem;font-style:italic}
+  [hidden]{display:none !important}
+</style>
+</head>
+<body>
+
+<div class="barra">
+  <div class="barra__caja">
+    <h1>El Closet de Juli <span>Panel de administracion</span></h1>
+    <button type="button" class="btn" id="btn-nueva">Nueva prenda</button>
+    <button type="button" class="btn btn--principal" id="btn-generar">Generar datos.js</button>
+  </div>
+</div>
+
+<div class="envoltura">
+
+  <p class="privacidad">
+    Todo ocurre dentro de este navegador: no hay servidor y ningun dato sale de
+    esta computadora. Este panel <strong>no publica</strong> — para que los
+    cambios se vean en el sitio hay que generar <code>datos.js</code>,
+    reemplazar el archivo en el repositorio y subirlo a GitHub.
+  </p>
+
+  <div id="sin-datos" class="errores" hidden>
+    No se encontro <code>js/datos.js</code>. El panel arranca con un catalogo
+    vacio: se puede trabajar igual y generar el archivo al final.
+  </div>
+
+  <!-- ============================ CONFIGURACION ============================ -->
+  <details class="bloque">
+    <summary>Datos del negocio</summary>
+    <p class="bloque__nota">Se cambian pocas veces. Afectan a todo el sitio.</p>
+    <div class="campos">
+      <div class="campo">
+        <label for="c-whatsapp">WhatsApp</label>
+        <input type="text" id="c-whatsapp" inputmode="numeric">
+        <span class="ayuda">Formato internacional, solo numeros. 506 = Costa Rica.</span>
+      </div>
+      <div class="campo">
+        <label for="c-negocio">Nombre del negocio</label>
+        <input type="text" id="c-negocio">
+      </div>
+      <div class="campo">
+        <label for="c-moneda">Moneda</label>
+        <select id="c-moneda">
+          <option value="CRC">Colones (CRC)</option>
+          <option value="USD">Dolares (USD)</option>
+        </select>
+      </div>
+      <div class="campo campo--ancho">
+        <label for="c-lema">Lema</label>
+        <input type="text" id="c-lema">
+        <span class="ayuda">Una linea. Es lo que aparece al compartir el enlace.</span>
+      </div>
+      <div class="campo campo--ancho">
+        <label for="c-sitio">Direccion del sitio</label>
+        <input type="text" id="c-sitio">
+        <span class="ayuda">Sin barra al final. Se usa para armar los enlaces que se comparten.</span>
+      </div>
+    </div>
+  </details>
+
+  <!-- ============================= CATEGORIAS ============================= -->
+  <details class="bloque">
+    <summary>Categorias</summary>
+    <p class="bloque__nota">
+      El orden de esta lista es el orden de los filtros en el sitio. Una
+      categoria sin prendas no aparece: no hace falta borrarla.
+    </p>
+    <div id="lista-categorias" class="herramientas"></div>
+    <div class="herramientas">
+      <input type="text" id="cat-nueva" placeholder="Agregar categoria">
+      <button type="button" class="btn" id="btn-cat-agregar">Agregar</button>
+    </div>
+  </details>
+
+  <!-- =============================== PRENDAS =============================== -->
+  <div class="bloque">
+    <h2>Prendas</h2>
+    <p class="bloque__nota">Lo mas reciente arriba. Las vendidas quedan al final.</p>
+
+    <div class="herramientas">
+      <input type="text" id="buscar" placeholder="Buscar por nombre o referencia">
+      <select id="filtro-situacion">
+        <option value="">Todas las situaciones</option>
+        <option value="nuevo">Recien llegadas</option>
+        <option value="disponible">Disponibles</option>
+        <option value="apartado">Apartadas</option>
+        <option value="vendido">Vendidas</option>
+      </select>
+      <span class="conteo" id="conteo"></span>
+    </div>
+
+    <div id="lista"></div>
+  </div>
+
+</div>
+
+<!-- ========================= MODAL: FORMULARIO ========================= -->
+<div class="fondo" id="fondo-form" hidden></div>
+<div class="modal" id="modal-form" role="dialog" aria-modal="true" aria-labelledby="titulo-form" hidden>
+  <h2 id="titulo-form">Nueva prenda</h2>
+
+  <div class="errores" id="errores" hidden></div>
+
+  <div class="campos">
+    <div class="campo">
+      <label for="f-ref">Referencia</label>
+      <input type="text" id="f-ref">
+      <span class="ayuda">Codigo unico. Nunca se reutiliza, ni cuando la prenda se vende.</span>
+    </div>
+    <div class="campo">
+      <label for="f-nombre">Nombre</label>
+      <input type="text" id="f-nombre">
+    </div>
+    <div class="campo">
+      <label for="f-categoria">Categoria</label>
+      <select id="f-categoria"></select>
+    </div>
+    <div class="campo">
+      <label for="f-situacion">Situacion</label>
+      <select id="f-situacion">
+        <option value="nuevo">Recien llegada</option>
+        <option value="disponible">Disponible</option>
+        <option value="apartado">Apartada</option>
+        <option value="vendido">Vendida</option>
+      </select>
+    </div>
+    <div class="campo">
+      <label for="f-talla">Talla</label>
+      <input type="text" id="f-talla" placeholder="M, 38, Unica...">
+    </div>
+    <div class="campo">
+      <label for="f-estado">Estado</label>
+      <input type="text" id="f-estado" placeholder="Muy buen estado">
+    </div>
+    <div class="campo campo--ancho">
+      <label for="f-medidas">Medidas</label>
+      <input type="text" id="f-medidas" placeholder="Busto 96 cm · Largo 62 cm">
+      <span class="ayuda">La talla de etiqueta miente entre marcas. Las medidas evitan devoluciones.</span>
+    </div>
+    <div class="campo campo--ancho">
+      <label for="f-descripcion">Descripcion</label>
+      <textarea id="f-descripcion"></textarea>
+      <span class="ayuda">Dos o tres lineas. Si hay un defecto, mencionarlo aqui: evita un reclamo despues.</span>
+    </div>
+    <div class="campo">
+      <label for="f-precio">Precio</label>
+      <input type="number" id="f-precio" min="0" step="100" placeholder="18000">
+      <div class="fila-casilla">
+        <input type="checkbox" id="f-consultar" style="width:auto">
+        <label for="f-consultar">Consultar por WhatsApp</label>
+      </div>
+    </div>
+    <div class="campo">
+      <label for="f-ingreso">Fecha de ingreso</label>
+      <input type="date" id="f-ingreso">
+      <span class="ayuda">Define el orden: lo mas reciente aparece primero.</span>
+    </div>
+
+    <div class="campo campo--ancho">
+      <label for="f-fotos">Fotos (de 1 a 3)</label>
+      <input type="file" id="f-fotos" accept="image/*" multiple>
+      <span class="ayuda">
+        Ya deben venir comprimidas en WebP, verticales, menos de 250 KB.
+        El panel las renombra y las ofrece para descargar; luego se copian a
+        <code>img/productos/</code>.
+      </span>
+      <div id="fotos-resumen"></div>
+    </div>
+  </div>
+
+  <div class="modal__pie">
+    <button type="button" class="btn" id="btn-cancelar">Cancelar</button>
+    <button type="button" class="btn btn--principal" id="btn-guardar">Guardar</button>
+  </div>
+</div>
+
+<!-- ========================== MODAL: BORRAR ========================== -->
+<div class="fondo" id="fondo-borrar" hidden></div>
+<div class="modal" id="modal-borrar" role="dialog" aria-modal="true" aria-labelledby="titulo-borrar" hidden>
+  <h2 id="titulo-borrar">Borrar prenda</h2>
+  <p id="borrar-texto"></p>
+  <p class="privacidad">
+    Antes de borrar, considerar marcarla como <strong>vendida</strong>: queda
+    en gris al final del catalogo y sirve de prueba de que la mercaderia se
+    mueve. Borrar es irreversible y no hay respaldo.
+  </p>
+  <div class="campo">
+    <label for="borrar-ref">Escribir la referencia para confirmar</label>
+    <input type="text" id="borrar-ref">
+  </div>
+  <div class="modal__pie">
+    <button type="button" class="btn" id="btn-borrar-cancelar">Cancelar</button>
+    <button type="button" class="btn btn--peligro" id="btn-borrar-confirmar">Borrar definitivamente</button>
+  </div>
+</div>
+
+<!-- ========================== MODAL: SALIDA ========================== -->
+<div class="fondo" id="fondo-salida" hidden></div>
+<div class="modal" id="modal-salida" role="dialog" aria-modal="true" aria-labelledby="titulo-salida" hidden>
+  <h2 id="titulo-salida">Archivo datos.js</h2>
+  <p class="bloque__nota">
+    Descargar o copiar, y <strong>reemplazar con esto el archivo
+    <code>js/datos.js</code></strong> del repositorio. El sitio se actualiza
+    cerca de un minuto despues de subirlo a GitHub.
+  </p>
+  <textarea class="salida" id="salida" readonly></textarea>
+  <div class="modal__pie">
+    <button type="button" class="btn" id="btn-salida-cerrar">Cerrar</button>
+    <button type="button" class="btn" id="btn-copiar">Copiar</button>
+    <button type="button" class="btn btn--principal" id="btn-descargar">Descargar datos.js</button>
+  </div>
+</div>
+
+<p class="aviso" id="aviso" role="status" aria-live="polite" hidden></p>
+
+<!-- Carga del catalogo actual. Se usa <script src> y no fetch: fetch falla
+     por CORS cuando la pagina se abre con doble clic (file://). El onerror
+     deja seguir con un catalogo vacio. -->
+<script src="js/datos.js" onerror="window.__sinDatos = true;"></script>
+
+<script>
+(function () {
+  "use strict";
+
+  /* =====================================================================
+     ESTADO
+     ===================================================================== */
+
+  var SITUACIONES = {
+    nuevo:      "Recien llegada",
+    disponible: "Disponible",
+    apartado:   "Apartada",
+    vendido:    "Vendida"
+  };
+  var PESO = { nuevo: 0, disponible: 1, apartado: 2, vendido: 3 };
+
+  var estado = {
+    config: {
+      whatsapp: "50672688481",
+      negocio: "El Closet de Juli",
+      lema: "",
+      sitio: "https://el-closet-de-juli.github.io",
+      moneda: "CRC"
+    },
+    categorias: ["Pantalones", "Abrigos", "Faldas", "Blusas", "Vestidos", "Zapatos", "Hombre", "Accesorios"],
+    prendas: [],
+    editando: null,      // ref de la prenda en edicion, o null si es nueva
+    fotosNuevas: [],     // objetos File seleccionados en el formulario
+    fotosPrevias: [],    // rutas que ya tenia la prenda
+    sucio: false,        // hay cambios sin exportar
+    refABorrar: null
+  };
+
+  /* Cargar lo que exista en datos.js */
+  if (typeof CONFIG !== "undefined") {
+    Object.keys(estado.config).forEach(function (k) {
+      if (CONFIG[k] !== undefined) { estado.config[k] = CONFIG[k]; }
+    });
+  }
+  if (typeof CATEGORIAS !== "undefined" && Array.isArray(CATEGORIAS)) {
+    estado.categorias = CATEGORIAS.slice();
+  }
+  if (typeof PRENDAS !== "undefined" && Array.isArray(PRENDAS)) {
+    estado.prendas = JSON.parse(JSON.stringify(PRENDAS));
+  }
+
+  var $ = function (id) { return document.getElementById(id); };
+
+
+  /* =====================================================================
+     UTILIDADES
+     ===================================================================== */
+
+  function avisar(msg) {
+    var a = $("aviso");
+    a.textContent = msg;
+    a.hidden = false;
+    clearTimeout(a._t);
+    a._t = setTimeout(function () { a.hidden = true; }, 2600);
+  }
+
+  function marcarSucio() { estado.sucio = true; }
+
+  function hoy() {
+    var d = new Date();
+    var m = String(d.getMonth() + 1).padStart(2, "0");
+    var dia = String(d.getDate()).padStart(2, "0");
+    return d.getFullYear() + "-" + m + "-" + dia;
+  }
+
+  /* Siguiente consecutivo con el mismo ancho que el ultimo usado. */
+  function siguienteRef() {
+    var max = 0, ancho = 3;
+    estado.prendas.forEach(function (p) {
+      var n = parseInt(p.ref, 10);
+      if (!isNaN(n)) {
+        if (n > max) { max = n; }
+        if (String(p.ref).length > ancho) { ancho = String(p.ref).length; }
+      }
+    });
+    return String(max + 1).padStart(ancho, "0");
+  }
+
+  function ordenar(a, b) {
+    if (PESO[a.situacion] !== PESO[b.situacion]) { return PESO[a.situacion] - PESO[b.situacion]; }
+    if ((a.ingreso || "") !== (b.ingreso || "")) { return (a.ingreso || "") < (b.ingreso || "") ? 1 : -1; }
+    return a.ref < b.ref ? 1 : -1;
+  }
+
+  function buscarPrenda(ref) {
+    return estado.prendas.filter(function (p) { return p.ref === ref; })[0] || null;
+  }
+
+  function crear(etiqueta, clase, texto) {
+    var el = document.createElement(etiqueta);
+    if (clase) { el.className = clase; }
+    if (texto !== undefined && texto !== null) { el.textContent = texto; }
+    return el;
+  }
+
+
+  /* =====================================================================
+     CONFIGURACION Y CATEGORIAS
+     ===================================================================== */
+
+  function pintarConfig() {
+    $("c-whatsapp").value = estado.config.whatsapp;
+    $("c-negocio").value  = estado.config.negocio;
+    $("c-lema").value     = estado.config.lema;
+    $("c-sitio").value    = estado.config.sitio;
+    $("c-moneda").value   = estado.config.moneda;
+  }
+
+  ["whatsapp", "negocio", "lema", "sitio", "moneda"].forEach(function (campo) {
+    $("c-" + campo).addEventListener("input", function () {
+      estado.config[campo] = this.value.trim();
+      marcarSucio();
+    });
+  });
+
+  function pintarCategorias() {
+    var caja = $("lista-categorias");
+    caja.textContent = "";
+
+    estado.categorias.forEach(function (cat) {
+      var usos = estado.prendas.filter(function (p) { return p.categoria === cat; }).length;
+      var etiqueta = crear("span", "marca-sit", cat + (usos ? " (" + usos + ")" : ""));
+      var quitar = crear("button", "btn btn--mini", "quitar");
+      quitar.type = "button";
+      quitar.setAttribute("aria-label", "Quitar la categoria " + cat);
+      quitar.addEventListener("click", function () {
+        if (usos > 0) {
+          avisar("No se puede quitar: hay " + usos + " prenda(s) en " + cat);
+          return;
+        }
+        estado.categorias = estado.categorias.filter(function (c) { return c !== cat; });
+        marcarSucio();
+        pintarCategorias();
+      });
+      var grupo = crear("span");
+      grupo.style.display = "inline-flex";
+      grupo.style.alignItems = "center";
+      grupo.style.gap = "0.25rem";
+      grupo.appendChild(etiqueta);
+      grupo.appendChild(quitar);
+      caja.appendChild(grupo);
+    });
+  }
+
+  $("btn-cat-agregar").addEventListener("click", function () {
+    var valor = $("cat-nueva").value.trim();
+    if (!valor) { return; }
+    if (estado.categorias.indexOf(valor) !== -1) { avisar("Esa categoria ya existe"); return; }
+    estado.categorias.push(valor);
+    $("cat-nueva").value = "";
+    marcarSucio();
+    pintarCategorias();
+    avisar("Categoria agregada");
+  });
+
+
+  /* =====================================================================
+     LISTA DE PRENDAS
+     ===================================================================== */
+
+  function filtradas() {
+    var texto = $("buscar").value.trim().toLowerCase();
+    var sit = $("filtro-situacion").value;
+
+    return estado.prendas.filter(function (p) {
+      if (sit && p.situacion !== sit) { return false; }
+      if (!texto) { return true; }
+      return (p.nombre || "").toLowerCase().indexOf(texto) !== -1 ||
+             String(p.ref).toLowerCase().indexOf(texto) !== -1;
+    }).sort(ordenar);
+  }
+
+  function pintarLista() {
+    var caja = $("lista");
+    caja.textContent = "";
+    var lista = filtradas();
+
+    $("conteo").textContent = lista.length + " de " + estado.prendas.length + " prendas";
+
+    if (lista.length === 0) {
+      caja.appendChild(crear("p", "sin-nada",
+        estado.prendas.length === 0
+          ? "El catalogo esta vacio. Empezar con “Nueva prenda”."
+          : "Ninguna prenda coincide con la busqueda."));
+      return;
+    }
+
+    lista.forEach(function (p) {
+      var fila = crear("div", "prenda" + (p.situacion === "vendido" ? " prenda--vendida" : ""));
+
+      /* Miniatura */
+      var mini = crear("div", "prenda__mini");
+      if (p.fotos && p.fotos[0]) {
+        var img = document.createElement("img");
+        img.src = p.fotos[0];
+        img.alt = "";
+        img.addEventListener("error", function () {
+          mini.textContent = p.ref;
+        });
+        mini.appendChild(img);
+      } else {
+        mini.textContent = p.ref;
+      }
+      fila.appendChild(mini);
+
+      /* Datos */
+      var datos = crear("div", "prenda__datos");
+      var titulo = crear("div", "prenda__nombre");
+      if (SITUACIONES[p.situacion] && p.situacion !== "disponible") {
+        titulo.appendChild(crear("span", "marca-sit marca-sit--" + p.situacion, SITUACIONES[p.situacion]));
+      }
+      titulo.appendChild(document.createTextNode(p.nombre || "(sin nombre)"));
+      datos.appendChild(titulo);
+
+      var precio = (p.precio === null || p.precio === undefined || p.precio === "")
+        ? "Consultar"
+        : Number(p.precio).toLocaleString("es-CR");
+      var partes = ["Ref. " + p.ref, p.categoria, p.talla ? "Talla " + p.talla : null,
+                    precio, (p.fotos || []).length + " foto(s)", p.ingreso];
+      datos.appendChild(crear("div", "prenda__meta",
+        partes.filter(Boolean).join("  ·  ")));
+      fila.appendChild(datos);
+
+      /* Acciones */
+      var acciones = crear("div", "prenda__acciones");
+
+      var selSit = document.createElement("select");
+      selSit.style.width = "auto";
+      selSit.style.fontSize = "0.75rem";
+      selSit.setAttribute("aria-label", "Situacion de la referencia " + p.ref);
+      Object.keys(SITUACIONES).forEach(function (clave) {
+        var op = document.createElement("option");
+        op.value = clave;
+        op.textContent = SITUACIONES[clave];
+        if (p.situacion === clave) { op.selected = true; }
+        selSit.appendChild(op);
+      });
+      // El cambio de situacion es la operacion mas frecuente del dia a dia:
+      // si cuesta cinco clics, deja de hacerse y el catalogo miente.
+      selSit.addEventListener("change", function () {
+        p.situacion = this.value;
+        marcarSucio();
+        pintarLista();
+        avisar("Ref. " + p.ref + ": " + SITUACIONES[p.situacion]);
+      });
+      acciones.appendChild(selSit);
+
+      var bEditar = crear("button", "btn btn--mini", "Editar");
+      bEditar.type = "button";
+      bEditar.addEventListener("click", function () { abrirFormulario(p.ref); });
+      acciones.appendChild(bEditar);
+
+      var bDuplicar = crear("button", "btn btn--mini", "Duplicar");
+      bDuplicar.type = "button";
+      bDuplicar.addEventListener("click", function () { duplicar(p.ref); });
+      acciones.appendChild(bDuplicar);
+
+      var bBorrar = crear("button", "btn btn--mini btn--peligro", "Borrar");
+      bBorrar.type = "button";
+      bBorrar.addEventListener("click", function () { pedirBorrado(p.ref); });
+      acciones.appendChild(bBorrar);
+
+      fila.appendChild(acciones);
+      caja.appendChild(fila);
+    });
+  }
+
+  $("buscar").addEventListener("input", pintarLista);
+  $("filtro-situacion").addEventListener("change", pintarLista);
+
+
+  /* =====================================================================
+     FORMULARIO
+     ===================================================================== */
+
+  function pintarSelectCategorias(seleccion) {
+    var sel = $("f-categoria");
+    sel.textContent = "";
+    estado.categorias.forEach(function (cat) {
+      var op = document.createElement("option");
+      op.value = cat;
+      op.textContent = cat;
+      if (cat === seleccion) { op.selected = true; }
+      sel.appendChild(op);
+    });
+  }
+
+  function abrirFormulario(ref) {
+    estado.editando = ref || null;
+    estado.fotosNuevas = [];
+    estado.fotosPrevias = [];
+    $("errores").hidden = true;
+    $("fotos-resumen").textContent = "";
+    $("f-fotos").value = "";
+
+    var p = ref ? buscarPrenda(ref) : null;
+
+    $("titulo-form").textContent = p ? "Editar prenda " + p.ref : "Nueva prenda";
+    $("f-ref").value         = p ? p.ref : siguienteRef();
+    $("f-nombre").value      = p ? (p.nombre || "") : "";
+    $("f-talla").value       = p ? (p.talla || "") : "";
+    $("f-medidas").value     = p ? (p.medidas || "") : "";
+    $("f-estado").value      = p ? (p.estado || "") : "Muy buen estado";
+    $("f-descripcion").value = p ? (p.descripcion || "") : "";
+    $("f-situacion").value   = p ? p.situacion : "nuevo";
+    $("f-ingreso").value     = p ? (p.ingreso || hoy()) : hoy();
+
+    pintarSelectCategorias(p ? p.categoria : estado.categorias[0]);
+
+    var sinPrecio = !p || p.precio === null || p.precio === undefined || p.precio === "";
+    $("f-consultar").checked = sinPrecio;
+    $("f-precio").value = sinPrecio ? "" : p.precio;
+    $("f-precio").disabled = sinPrecio;
+
+    if (p && p.fotos) {
+      estado.fotosPrevias = p.fotos.slice();
+      $("fotos-resumen").appendChild(crear("p", "ayuda",
+        "Fotos actuales: " + p.fotos.join(", ") + ". Si no se eligen fotos nuevas, se conservan."));
+    }
+
+    $("fondo-form").hidden = false;
+    $("modal-form").hidden = false;
+    $("f-nombre").focus();
+  }
+
+  function cerrarFormulario() {
+    $("modal-form").hidden = true;
+    $("fondo-form").hidden = true;
+    estado.editando = null;
+  }
+
+  /* La casilla de consultar es el mecanismo del catalogo mixto: unas prendas
+     muestran precio y otras derivan a WhatsApp. */
+  $("f-consultar").addEventListener("change", function () {
+    $("f-precio").disabled = this.checked;
+    if (this.checked) { $("f-precio").value = ""; }
+  });
+
+  /* --- Fotos: se revisan, se avisa, no se bloquea --- */
+  $("f-fotos").addEventListener("change", function () {
+    var archivos = Array.prototype.slice.call(this.files);
+    var resumen = $("fotos-resumen");
+    resumen.textContent = "";
+
+    if (archivos.length > 3) {
+      archivos = archivos.slice(0, 3);
+      avisar("Solo se usan las primeras 3 fotos");
+    }
+    estado.fotosNuevas = archivos;
+    if (archivos.length === 0) { return; }
+
+    var avisos = [];
+    var pendientes = archivos.length;
+
+    archivos.forEach(function (archivo, i) {
+      if (archivo.size > 250 * 1024) {
+        avisos.push(archivo.name + ": pesa " + Math.round(archivo.size / 1024) +
+                    " KB. Sobre 250 KB la pagina se vuelve lenta en datos moviles.");
+      }
+      if (archivo.type !== "image/webp") {
+        avisos.push(archivo.name + ": no es WebP. Convertir en squoosh.app, calidad 75.");
+      }
+      var img = new Image();
+      img.onload = function () {
+        if (img.naturalWidth >= img.naturalHeight) {
+          avisos.push(archivo.name + ": es horizontal o cuadrada. La rejilla usa vertical 3:4 y la va a recortar.");
+        }
+        URL.revokeObjectURL(img.src);
+        if (--pendientes === 0) { mostrarAvisos(avisos, archivos); }
+      };
+      img.onerror = function () {
+        if (--pendientes === 0) { mostrarAvisos(avisos, archivos); }
+      };
+      img.src = URL.createObjectURL(archivo);
+    });
+  });
+
+  function mostrarAvisos(avisos, archivos) {
+    var resumen = $("fotos-resumen");
+    resumen.textContent = "";
+    resumen.appendChild(crear("p", "ayuda",
+      archivos.length + " foto(s) seleccionada(s). Al guardar se descargan renombradas."));
+    if (avisos.length === 0) { return; }
+
+    var caja = crear("div", "advertencias");
+    caja.appendChild(crear("strong", null, "Revisar antes de subir:"));
+    var ul = document.createElement("ul");
+    avisos.forEach(function (a) { ul.appendChild(crear("li", null, a)); });
+    caja.appendChild(ul);
+    resumen.appendChild(caja);
+  }
+
+  function extension(nombre) {
+    var punto = nombre.lastIndexOf(".");
+    return punto === -1 ? "webp" : nombre.slice(punto + 1).toLowerCase();
+  }
+
+  /* Renombra al estandar ref-N.ext y las ofrece para descargar. Basta
+     arrastrar lo descargado a img/productos/. */
+  function descargarFotos(ref, archivos) {
+    archivos.forEach(function (archivo, i) {
+      var url = URL.createObjectURL(archivo);
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = ref + "-" + (i + 1) + "." + extension(archivo.name);
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
+    });
+  }
+
+  /* --- Validacion --- */
+  function validar() {
+    var errores = [];
+    var ref = $("f-ref").value.trim();
+    var nombre = $("f-nombre").value.trim();
+
+    if (!ref) {
+      errores.push("La referencia no puede quedar vacia.");
+    } else {
+      var choque = estado.prendas.filter(function (p) {
+        return p.ref === ref && p.ref !== estado.editando;
+      });
+      if (choque.length > 0) {
+        errores.push("La referencia " + ref + " ya la usa “" + choque[0].nombre +
+                     "”. Las referencias no se reutilizan nunca, ni cuando la prenda anterior se vendio.");
+      }
+    }
+
+    if (!nombre) { errores.push("La prenda necesita un nombre."); }
+
+    var cantidadFotos = estado.fotosNuevas.length > 0
+      ? estado.fotosNuevas.length
+      : estado.fotosPrevias.length;
+    if (cantidadFotos === 0) { errores.push("Hace falta al menos una foto."); }
+    if (cantidadFotos > 3) { errores.push("Maximo 3 fotos por prenda."); }
+
+    if (!$("f-consultar").checked) {
+      var precio = $("f-precio").value;
+      if (precio === "" || isNaN(Number(precio)) || Number(precio) < 0) {
+        errores.push("El precio tiene que ser un numero, o marcar “Consultar por WhatsApp”.");
+      }
+    }
+
+    if (estado.categorias.length === 0) { errores.push("Primero hay que crear al menos una categoria."); }
+
+    return errores;
+  }
+
+  function mostrarErrores(errores) {
+    var caja = $("errores");
+    caja.textContent = "";
+    if (errores.length === 0) { caja.hidden = true; return; }
+    caja.hidden = false;
+    caja.appendChild(crear("strong", null, "No se pudo guardar:"));
+    var ul = document.createElement("ul");
+    errores.forEach(function (e) { ul.appendChild(crear("li", null, e)); });
+    caja.appendChild(ul);
+    caja.scrollIntoView({ block: "nearest" });
+  }
+
+  $("btn-guardar").addEventListener("click", function () {
+    var errores = validar();
+    if (errores.length > 0) { mostrarErrores(errores); return; }
+
+    var ref = $("f-ref").value.trim();
+
+    var fotos;
+    if (estado.fotosNuevas.length > 0) {
+      fotos = estado.fotosNuevas.map(function (archivo, i) {
+        return "img/productos/" + ref + "-" + (i + 1) + "." + extension(archivo.name);
+      });
+    } else {
+      fotos = estado.fotosPrevias.slice();
+    }
+
+    var prenda = {
+      ref: ref,
+      nombre: $("f-nombre").value.trim(),
+      categoria: $("f-categoria").value,
+      talla: $("f-talla").value.trim(),
+      medidas: $("f-medidas").value.trim(),
+      estado: $("f-estado").value.trim(),
+      descripcion: $("f-descripcion").value.trim(),
+      precio: $("f-consultar").checked ? null : Number($("f-precio").value),
+      situacion: $("f-situacion").value,
+      fotos: fotos,
+      ingreso: $("f-ingreso").value || hoy()
+    };
+
+    if (estado.editando) {
+      var i = estado.prendas.findIndex(function (p) { return p.ref === estado.editando; });
+      if (i !== -1) { estado.prendas[i] = prenda; }
+    } else {
+      estado.prendas.push(prenda);
+    }
+
+    if (estado.fotosNuevas.length > 0) { descargarFotos(ref, estado.fotosNuevas); }
+
+    marcarSucio();
+    cerrarFormulario();
+    pintarLista();
+    pintarCategorias();
+    avisar("Ref. " + ref + " guardada. Falta generar datos.js.");
+  });
+
+  $("btn-cancelar").addEventListener("click", cerrarFormulario);
+  $("fondo-form").addEventListener("click", cerrarFormulario);
+  $("btn-nueva").addEventListener("click", function () { abrirFormulario(null); });
+
+
+  /* =====================================================================
+     DUPLICAR Y BORRAR
+     ===================================================================== */
+
+  function duplicar(ref) {
+    var original = buscarPrenda(ref);
+    if (!original) { return; }
+    var copia = JSON.parse(JSON.stringify(original));
+    copia.ref = siguienteRef();
+    copia.nombre = original.nombre + " (copia)";
+    copia.situacion = "nuevo";
+    copia.ingreso = hoy();
+    // Las fotos apuntan a las del original a proposito: normalmente se
+    // duplica una prenda parecida y se reemplazan las fotos despues.
+    estado.prendas.push(copia);
+    marcarSucio();
+    pintarLista();
+    abrirFormulario(copia.ref);
+    avisar("Copia creada como ref. " + copia.ref);
+  }
+
+  function pedirBorrado(ref) {
+    var p = buscarPrenda(ref);
+    if (!p) { return; }
+    estado.refABorrar = ref;
+    $("borrar-texto").textContent =
+      "Se va a borrar la referencia " + ref + " — " + p.nombre + ".";
+    $("borrar-ref").value = "";
+    $("fondo-borrar").hidden = false;
+    $("modal-borrar").hidden = false;
+    $("borrar-ref").focus();
+  }
+
+  function cerrarBorrado() {
+    $("modal-borrar").hidden = true;
+    $("fondo-borrar").hidden = true;
+    estado.refABorrar = null;
+  }
+
+  $("btn-borrar-confirmar").addEventListener("click", function () {
+    if ($("borrar-ref").value.trim() !== estado.refABorrar) {
+      avisar("La referencia escrita no coincide");
+      return;
+    }
+    var ref = estado.refABorrar;
+    estado.prendas = estado.prendas.filter(function (p) { return p.ref !== ref; });
+    marcarSucio();
+    cerrarBorrado();
+    pintarLista();
+    pintarCategorias();
+    avisar("Ref. " + ref + " borrada");
+  });
+
+  $("btn-borrar-cancelar").addEventListener("click", cerrarBorrado);
+  $("fondo-borrar").addEventListener("click", cerrarBorrado);
+
+
+  /* =====================================================================
+     GENERAR datos.js
+     --------------------------------------------------------------------
+     La salida conserva los comentarios del archivo original: quien lo abra
+     dentro de seis meses tiene que entenderlo sin este panel.
+     JSON.stringify se encarga de escapar comillas y acentos, que es donde
+     se rompe un archivo escrito a mano.
+     ===================================================================== */
+
+  function txt(valor) { return JSON.stringify(valor === undefined || valor === null ? "" : String(valor)); }
+
+  function generar() {
+    var L = [];
+
+    L.push("/* ==========================================================================");
+    L.push("   EL CLOSET DE JULI - Datos del catalogo");
+    L.push("   --------------------------------------------------------------------------");
+    L.push("   ARCHIVO GENERADO DESDE admin.html el " + hoy() + ".");
+    L.push("");
+    L.push("   Para actualizar el catalogo: abrir admin.html, hacer los cambios y");
+    L.push("   generar este archivo de nuevo. Editarlo a mano funciona, pero una coma");
+    L.push("   fuera de lugar deja el sitio en blanco.");
+    L.push("   ========================================================================== */");
+    L.push("");
+    L.push("");
+    L.push("const CONFIG = {");
+    L.push("  // Numero de WhatsApp en formato internacional, solo digitos.");
+    L.push("  whatsapp: " + txt(estado.config.whatsapp) + ",");
+    L.push("");
+    L.push("  negocio: " + txt(estado.config.negocio) + ",");
+    L.push("");
+    L.push("  // Frase corta bajo el titulo. Es lo que se ve al compartir el enlace.");
+    L.push("  lema: " + txt(estado.config.lema) + ",");
+    L.push("");
+    L.push("  // Direccion publica del sitio, sin barra al final.");
+    L.push("  sitio: " + txt(estado.config.sitio) + ",");
+    L.push("");
+    L.push("  // \"CRC\" = colones, \"USD\" = dolares.");
+    L.push("  moneda: " + txt(estado.config.moneda));
+    L.push("};");
+    L.push("");
+    L.push("");
+    L.push("/* El orden de esta lista define el orden de los filtros en pantalla.");
+    L.push("   Una categoria sin prendas no genera filtro. */");
+    L.push("");
+    L.push("const CATEGORIAS = [");
+    L.push(estado.categorias.map(function (c) { return "  " + txt(c); }).join(",\n"));
+    L.push("];");
+    L.push("");
+    L.push("");
+    L.push("/* situacion:  \"nuevo\" | \"disponible\" | \"apartado\" | \"vendido\"");
+    L.push("   precio:     numero sin simbolos, o null para \"Consultar por WhatsApp\" */");
+    L.push("");
+    L.push("const PRENDAS = [");
+    L.push("");
+
+    var bloques = estado.prendas.slice().sort(ordenar).map(function (p) {
+      var b = [];
+      b.push("  {");
+      b.push("    ref: " + txt(p.ref) + ",");
+      b.push("    nombre: " + txt(p.nombre) + ",");
+      b.push("    categoria: " + txt(p.categoria) + ",");
+      b.push("    talla: " + txt(p.talla) + ",");
+      b.push("    medidas: " + txt(p.medidas) + ",");
+      b.push("    estado: " + txt(p.estado) + ",");
+      b.push("    descripcion: " + txt(p.descripcion) + ",");
+      b.push("    precio: " + (p.precio === null || p.precio === undefined || p.precio === "" ? "null" : Number(p.precio)) + ",");
+      b.push("    situacion: " + txt(p.situacion) + ",");
+      b.push("    fotos: [");
+      b.push((p.fotos || []).map(function (f) { return "      " + txt(f); }).join(",\n"));
+      b.push("    ],");
+      b.push("    ingreso: " + txt(p.ingreso));
+      b.push("  }");
+      return b.join("\n");
+    });
+
+    L.push(bloques.join(",\n\n"));
+    L.push("");
+    L.push("];");
+    L.push("");
+
+    return L.join("\n");
+  }
+
+  $("btn-generar").addEventListener("click", function () {
+    $("salida").value = generar();
+    $("fondo-salida").hidden = false;
+    $("modal-salida").hidden = false;
+    $("btn-descargar").focus();
+  });
+
+  $("btn-salida-cerrar").addEventListener("click", function () {
+    $("modal-salida").hidden = true;
+    $("fondo-salida").hidden = true;
+  });
+  $("fondo-salida").addEventListener("click", function () {
+    $("modal-salida").hidden = true;
+    $("fondo-salida").hidden = true;
+  });
+
+  $("btn-copiar").addEventListener("click", function () {
+    var caja = $("salida");
+    caja.select();
+    var ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+    if (!ok && navigator.clipboard) {
+      navigator.clipboard.writeText(caja.value).then(
+        function () { estado.sucio = false; avisar("Copiado"); },
+        function () { avisar("No se pudo copiar: seleccionar el texto y usar Ctrl+C"); }
+      );
+      return;
+    }
+    if (ok) { estado.sucio = false; }
+    avisar(ok ? "Copiado" : "No se pudo copiar: seleccionar el texto y usar Ctrl+C");
+  });
+
+  $("btn-descargar").addEventListener("click", function () {
+    var blob = new Blob([$("salida").value], { type: "text/javascript;charset=utf-8" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "datos.js";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
+    estado.sucio = false;
+    avisar("Descargado. Reemplazar js/datos.js con este archivo.");
+  });
+
+
+  /* =====================================================================
+     TECLADO Y SALIDA
+     ===================================================================== */
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Escape") { return; }
+    if (!$("modal-form").hidden) { cerrarFormulario(); }
+    else if (!$("modal-borrar").hidden) { cerrarBorrado(); }
+    else if (!$("modal-salida").hidden) {
+      $("modal-salida").hidden = true;
+      $("fondo-salida").hidden = true;
+    }
+  });
+
+  window.addEventListener("beforeunload", function (e) {
+    if (!estado.sucio) { return; }
+    e.preventDefault();
+    e.returnValue = "";
+  });
+
+
+  /* =====================================================================
+     ARRANQUE
+     ===================================================================== */
+
+  if (window.__sinDatos || typeof PRENDAS === "undefined") {
+    $("sin-datos").hidden = false;
+  }
+
+  pintarConfig();
+  pintarCategorias();
+  pintarLista();
+
+})();
+</script>
+
+</body>
+</html>

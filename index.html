@@ -5,15 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <title>El Closet de Juli</title>
-  <meta name="description" content="Catalogo de ropa y calzado seleccionado. Consultas por WhatsApp.">
+  <meta name="description" content="Ropa y calzado seleccionado a mano. Consultas por WhatsApp.">
+  <meta name="theme-color" content="#F6F1E7">
 
-  <!-- Vista previa al compartir el enlace por WhatsApp o redes.
-       TODO: subir una imagen de portada a img/portada.jpg (1200x630 px)
-       y reemplazar la URL completa cuando el sitio este publicado. -->
+  <!-- Vista previa al pegar el enlace en WhatsApp, Instagram o Facebook.
+       Las URL tienen que ser ABSOLUTAS: los previsualizadores no resuelven
+       rutas relativas. Falta subir img/portada.jpg (1200x630, en JPG: varios
+       previsualizadores todavia no leen WebP). -->
   <meta property="og:type" content="website">
+  <meta property="og:url" content="https://el-closet-de-juli.github.io/">
   <meta property="og:title" content="El Closet de Juli">
-  <meta property="og:description" content="Ropa y calzado seleccionado. Consultas por WhatsApp.">
-  <meta property="og:image" content="img/portada.jpg">
+  <meta property="og:description" content="Ropa y calzado seleccionado a mano. Consultas por WhatsApp.">
+  <meta property="og:image" content="https://el-closet-de-juli.github.io/img/portada.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale" content="es_CR">
+  <meta name="twitter:card" content="summary_large_image">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -23,13 +30,14 @@
 </head>
 <body>
 
+  <a class="salto-contenido" href="#rejilla">Saltar al catalogo</a>
+
   <header class="encabezado">
     <div class="contenedor">
 
-      <!-- Marca: una linea continua que dibuja una percha.
-           Mismo lenguaje grafico que el logo de la marca de enfermeria
-           (una sola linea que forma un objeto reconocible), sin repetirlo. -->
-      <svg class="marca" viewBox="0 0 64 44" fill="none" aria-hidden="true">
+      <!-- Marca: una sola linea continua que dibuja una percha. Mismo
+           lenguaje grafico que la otra marca de la casa, sin repetirlo. -->
+      <svg class="marca" width="54" height="37" viewBox="0 0 64 44" fill="none" aria-hidden="true" focusable="false">
         <path d="M32 13c-3.3 0-6-2.4-6-5.5S28.7 2 32 2s6 2.4 6 5.5c0 2.4-1.7 3.9-3.6 4.8-1.4.7-2.4 1.4-2.4 2.7v2.5"
               stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
         <path d="M32 18 4 36.5c-1.7 1.1-.9 3.5 1.1 3.5h53.8c2 0 2.8-2.4 1.1-3.5L32 18Z"
@@ -40,10 +48,22 @@
       <p class="lema" id="lema"></p>
 
       <p class="nota-uso">
-        Cada prenda tiene un codigo de referencia. Toca
-        <strong>Preguntar</strong> y el mensaje de WhatsApp se escribe solo
+        Cada prenda tiene un codigo de referencia. Al tocar
+        <strong>Preguntar</strong>, el mensaje de WhatsApp se escribe solo
         con el codigo, el nombre y la talla.
       </p>
+
+      <button type="button" class="boton-linea" id="compartir-sitio">
+        Compartir catalogo
+      </button>
+
+      <noscript>
+        <p class="aviso-error">
+          Este catalogo necesita JavaScript para mostrar las prendas.
+          Mientras tanto, se puede consultar directo por
+          <a id="wa-noscript" href="https://wa.me/50672688481" target="_blank" rel="noopener noreferrer">WhatsApp</a>.
+        </p>
+      </noscript>
 
     </div>
   </header>
@@ -57,7 +77,11 @@
 
       <div class="vacio" id="vacio" hidden>
         <p>No hay prendas en esta categoria por ahora.</p>
-        <p>Escribinos y te avisamos cuando entre mercaderia nueva.</p>
+        <p>
+          Escribinos por
+          <a id="wa-vacio" href="#" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+          y te avisamos cuando entre mercaderia nueva.
+        </p>
       </div>
 
     </div>
@@ -67,11 +91,81 @@
     <div class="contenedor">
       <p>
         Consultas y apartados por
-        <a id="wa-general" href="#" target="_blank">WhatsApp</a>
+        <a id="wa-general" href="#" target="_blank" rel="noopener noreferrer">WhatsApp</a>
       </p>
-      <p>El Closet de Juli &middot; <span id="anio"></span></p>
+      <p class="pie__legal">El Closet de Juli &middot; <span id="anio"></span></p>
     </div>
   </footer>
+
+  <!-- Boton flotante de WhatsApp general -->
+  <a class="flotante" id="wa-flotante" href="#" target="_blank" rel="noopener noreferrer"
+     aria-label="Escribir por WhatsApp">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+      <path d="M12.04 2c-5.46 0-9.9 4.44-9.9 9.9 0 1.75.46 3.45 1.32 4.95L2 22l5.3-1.39a9.86 9.86 0 0 0 4.74 1.21h.01c5.46 0 9.9-4.44 9.9-9.9 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2Zm0 18.13h-.01a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-3.11.82.83-3.03-.2-.31a8.2 8.2 0 0 1-1.26-4.38c0-4.54 3.7-8.23 8.23-8.23a8.2 8.2 0 0 1 8.23 8.24c0 4.54-3.7 8.22-8.23 8.22Zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.13-.16.24-.64.8-.79.97-.14.16-.29.18-.54.06-.25-.13-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.01-.38.11-.5.11-.11.25-.29.37-.44.13-.15.17-.25.25-.41.08-.17.04-.31-.02-.44-.06-.12-.56-1.34-.76-1.84-.2-.48-.4-.42-.56-.43h-.47c-.17 0-.44.06-.67.31-.23.25-.87.85-.87 2.07s.9 2.4 1.02 2.56c.12.17 1.76 2.68 4.26 3.76.6.26 1.06.41 1.42.53.6.19 1.14.16 1.57.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.08.14-1.18-.06-.11-.22-.17-.47-.29Z"/>
+    </svg>
+  </a>
+
+  <!-- Aviso breve (enlace copiado, etc.) -->
+  <p class="aviso" id="aviso" role="status" aria-live="polite" hidden></p>
+
+  <!-- ====================================================================
+       FICHA DE PRODUCTO
+       Vive en el HTML vacia y se rellena al abrirla. Asi no se construye
+       un modal nuevo cada vez.
+       ==================================================================== -->
+
+  <div class="fondo" id="fondo" hidden></div>
+
+  <div class="ficha" id="ficha" role="dialog" aria-modal="true" hidden>
+
+    <button type="button" class="ficha__cerrar" aria-label="Cerrar">
+      <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+        <path d="M4 4l12 12M16 4L4 16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+    </button>
+
+    <div class="ficha__medio">
+      <div class="ficha__galeria"></div>
+
+      <button type="button" class="ficha__flecha ficha__flecha--previa" aria-label="Foto anterior">
+        <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true" focusable="false">
+          <path d="M11.5 3L5.5 9l6 6" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <button type="button" class="ficha__flecha ficha__flecha--siguiente" aria-label="Foto siguiente">
+        <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true" focusable="false">
+          <path d="M6.5 3l6 6-6 6" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      <div class="ficha__puntos" role="tablist" aria-label="Fotos"></div>
+    </div>
+
+    <div class="ficha__texto">
+      <span class="ficha__sello" hidden></span>
+      <h2 class="ficha__nombre"></h2>
+      <p class="ficha__precio"></p>
+
+      <dl class="ficha__datos"></dl>
+
+      <p class="ficha__descripcion"></p>
+
+      <p class="ficha__nota-vendida" hidden>
+        Esta prenda ya se vendio. Se deja visible para mostrar el tipo de
+        mercaderia que entra.
+      </p>
+
+      <div class="ficha__acciones">
+        <a class="boton boton--wa ficha__wa" href="#" target="_blank" rel="noopener noreferrer">
+          Preguntar por WhatsApp
+        </a>
+        <button type="button" class="boton boton--linea ficha__compartir">
+          Compartir esta prenda
+        </button>
+      </div>
+    </div>
+
+  </div>
 
   <!-- datos.js va primero: app.js depende de CONFIG, CATEGORIAS y PRENDAS. -->
   <script src="js/datos.js"></script>
