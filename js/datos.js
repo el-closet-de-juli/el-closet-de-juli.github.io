@@ -64,24 +64,6 @@ const PRENDAS = [
   },
 
   {
-    ref: "002",
-    nombre: "Pantalon de lino",
-    categoria: "Pantalones",
-    talla: "S",
-    medidas: "Cintura 68 cm · Largo 98 cm",
-    estado: "Buen estado",
-    descripcion: "Lino natural color arena, tiro alto, caida suelta. Una arruga permanente en el ruedo derecho.",
-    precio: null,
-    situacion: "disponible",
-    fotos: [
-      "img/productos/002-1.webp",
-      "img/productos/002-2.webp",
-      "img/productos/002-3.webp"
-    ],
-    ingreso: "2026-09-05"
-  },
-
-  {
     ref: "003",
     nombre: "Vestido floral manga corta",
     categoria: "Vestidos",
@@ -114,6 +96,24 @@ const PRENDAS = [
       "img/productos/005-3.webp"
     ],
     ingreso: "2026-09-02"
+  },
+
+  {
+    ref: "002",
+    nombre: "Pantalon de lino",
+    categoria: "Pantalones",
+    talla: "S",
+    medidas: "Cintura 68 cm · Largo 98 cm",
+    estado: "Buen estado",
+    descripcion: "Lino natural color arena, tiro alto, caida suelta. Una arruga permanente en el ruedo derecho.",
+    precio: null,
+    situacion: "apartado",
+    fotos: [
+      "img/productos/002-1.webp",
+      "img/productos/002-2.webp",
+      "img/productos/002-3.webp"
+    ],
+    ingreso: "2026-09-05"
   },
 
   {
