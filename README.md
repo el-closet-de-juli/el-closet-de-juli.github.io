@@ -7,18 +7,37 @@ las consultas salen por WhatsApp con el mensaje ya escrito.
 
 ## Cómo se actualiza el catálogo
 
-**Camino normal: usar el panel.** No hay que tocar código.
+Todo se hace desde `panel-9f3a2c.html`. No hay que tocar código.
 
-1. Abrir `admin.html` con doble clic (se abre en el navegador, en la computadora).
-2. Hacer los cambios: agregar prendas, editarlas, marcarlas como vendidas, borrarlas.
-3. Tocar **"Generar datos.js"** y luego **"Descargar datos.js"**.
-4. Subir a GitHub el archivo `datos.js` descargado, reemplazando `js/datos.js`.
-5. Si se agregaron fotos, subirlas también a la carpeta `img/productos/`.
-   El panel ya las descargó con el nombre correcto.
-6. El sitio se actualiza solo, cerca de un minuto después.
+### Modo directo (recomendado): el panel publica solo
 
-> El panel **no publica nada**. Todo pasa dentro del navegador y ningún dato sale
-> de la computadora. Publicar sigue siendo subir los archivos a GitHub.
+Funciona igual desde la computadora y desde el teléfono.
+
+1. **Una vez por dispositivo:** en la sección "Conexión con GitHub", llenar
+   usuario, repositorio, rama y token, y tocar "Probar conexión".
+2. Hacer los cambios: agregar prendas, editarlas, marcarlas vendidas, borrarlas.
+   Las fotos se cargan tal como salen del teléfono — el panel las comprime.
+3. Tocar **Publicar**, escribir qué cambió y confirmar.
+4. El sitio se actualiza en 1 a 3 minutos.
+
+El catálogo y las fotos viajan en **un solo commit**, así el sitio nunca queda
+un instante con prendas nuevas y fotos faltantes.
+
+**El token:** GitHub → Settings → Developer settings → Personal access tokens →
+*Fine-grained tokens*. Acceso **solo a este repositorio**, permiso
+**Contents: Read and write** y nada más, vencimiento a 90 días. Se guarda en el
+navegador de ese dispositivo y solo viaja a `api.github.com`. Nunca se escribe
+en un archivo del repositorio. Si se presta o se pierde el equipo: **Olvidar
+token**, y revocarlo en GitHub.
+
+### Modo manual: sin conexión configurada
+
+1. Abrir `panel-9f3a2c.html`, hacer los cambios.
+2. **Generar datos.js** → **Descargar**. Las fotos se descargan renombradas.
+3. Mover todo a su lugar: `.\importar.ps1`
+4. Publicar: `.\publicar.ps1 "qué cambió"`
+
+Sirve de respaldo si el token venció o no hay internet en el momento de editar.
 
 ### Lo que hace el panel
 
@@ -61,21 +80,23 @@ duda, marcarla como vendida.
 
 ## Fotos: lo que más afecta el resultado
 
-Las fotos se preparan **antes** de subirlas. El panel avisa si algo está fuera de
-norma, pero no las corrige.
+**El panel comprime solo.** Se cargan tal como salen del teléfono: las
+redimensiona a 1200 px de lado mayor, las convierte a WebP con calidad 75 y
+respeta la orientación de la cámara. No hay que usar ninguna herramienta aparte,
+y las fotos no se suben a ningún servicio de terceros: todo pasa en el navegador.
+
+Lo que el panel **no** puede arreglar, y depende de cómo se tome la foto:
 
 | Regla | Por qué |
 |---|---|
-| Formato vertical, proporción 3:4 | Es la que usa la rejilla; otras se recortan |
-| WebP, 1200 px de lado mayor, calidad 75 | Es el formato que menos pesa con la misma calidad visible |
-| Menos de 250 KB por foto | En datos móviles, cien fotos pesadas no cargan |
+| Formato vertical, proporción 3:4 | Es la que usa la rejilla; una foto horizontal se recorta |
 | Fondo neutro y liso | Pared clara o sábana blanca. La prenda tiene que ser lo único que se vea |
 | Luz de día, sin flash | El flash altera el color real de la tela y genera devoluciones |
 | Mostrar el defecto si lo hay | Una foto del desgaste evita un reclamo después |
 | De 2 a 3 fotos por prenda | Frente, detalle y defecto. Evita el "¿tenés más fotos?" que consume tiempo |
 
-Para comprimir sin instalar nada: **[squoosh.app](https://squoosh.app)**. Se abre en
-el navegador, no sube las fotos a ningún lado. Exportar en **WebP, calidad 75**.
+El panel avisa cuando una foto queda pesada aun comprimida o cuando es
+horizontal, pero no bloquea: la decisión es de quien publica.
 
 Los nombres de archivo los pone el panel: `001-1.webp`, `001-2.webp`, `001-3.webp`.
 
@@ -92,18 +113,32 @@ comparte con un recuadro vacío.
 
 ```
 el-closet-de-juli.github.io/
-├── index.html          Estructura de la página. Rara vez se toca.
-├── admin.html          Panel de administración. Se abre localmente.
-├── css/estilos.css     Colores y tipografía.
+├── index.html            Estructura de la página. Rara vez se toca.
+├── panel-9f3a2c.html     Panel de administración.
+├── css/estilos.css       Colores y tipografía.
 ├── js/
-│   ├── datos.js        Lo genera el panel. Es el catálogo.
-│   └── app.js          Renderizado, filtros y ficha. No hace falta tocarlo.
+│   ├── datos.js          Lo genera el panel. Es el catálogo.
+│   └── app.js            Renderizado, filtros y ficha. No hace falta tocarlo.
 ├── img/
-│   ├── portada.jpg     Vista previa al compartir (1200x630, JPG).
-│   └── productos/      Fotos de las prendas (WebP).
-├── .nojekyll           Desactiva Jekyll en GitHub Pages. No borrar.
-└── README.md           Este archivo.
+│   ├── portada.jpg       Vista previa al compartir (1200x630, JPG).
+│   └── productos/        Fotos de las prendas (WebP).
+├── importar.ps1          Mueve lo descargado a su lugar (modo manual).
+├── publicar.ps1          Sube los cambios con un comando (modo manual).
+├── .gitignore            Qué no subir nunca.
+├── .nojekyll             Desactiva Jekyll en GitHub Pages. No borrar.
+└── README.md             Este archivo.
 ```
+
+**Por qué el panel tiene ese nombre.** No se llama `admin.html` a propósito: los
+escáneres automáticos que recorren internet prueban rutas comunes
+(`/admin`, `/admin.html`, `/wp-admin`) y un nombre así aparece en todas esas
+listas. Con un nombre no adivinable, el sitio deja de figurar en ese ruido.
+
+Que quede claro qué es y qué no es: **esto no es control de acceso.** El
+repositorio es público, así que cualquiera que lo abra ve el archivo listado.
+Lo único que evita es el escaneo ciego de rutas. El panel sin token no puede
+modificar nada, así que la protección es proporcional al riesgo — pero no hay
+que confundirla con seguridad real.
 
 ---
 
@@ -140,9 +175,15 @@ actualiza solo en cerca de un minuto.
   ([OWASP XSS Prevention Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html)).
 - Los enlaces con `target="_blank"` llevan `rel="noopener noreferrer"` para
   evitar *reverse tabnabbing*.
-- El repositorio es público y **`admin.html` se sube igual que el resto**: no
-  escribir ahí contraseñas, costos de compra ni notas internas. Solo debe
-  contener lo que ya es público en el catálogo.
+- El repositorio es público y **el panel se sube igual que el resto**: no escribir
+  ahí contraseñas, costos de compra ni notas internas. Solo debe contener lo que
+  ya es público en el catálogo.
+- **El token nunca va dentro de un archivo del proyecto.** Vive en el
+  almacenamiento del navegador de cada dispositivo. Si alguna vez se pega dentro
+  del HTML "para no tener que configurarlo", queda publicado y hay que revocarlo
+  de inmediato: el historial de Git lo conserva aunque después se borre.
+- Si se pierde un dispositivo con el panel configurado: revocar el token en
+  GitHub. Borrarlo del navegador no lo invalida.
 - No subir capturas con datos de clientas, listas de contactos ni archivos de
   control interno de ventas.
 - El número de WhatsApp queda expuesto a rastreadores. Es inevitable en un
@@ -166,5 +207,5 @@ actualiza solo en cerca de un minuto.
 - [ ] Navegar con la tecla Tab: se ve el recuadro de foco; dentro de la ficha el
       foco no se escapa a la página de atrás.
 - [ ] Cerrar la ficha con la tecla Escape.
-- [ ] En `admin.html`: crear una prenda, editarla, marcarla vendida, borrar otra,
+- [ ] En `panel-9f3a2c.html`: crear una prenda, editarla, marcarla vendida, borrar otra,
       generar `datos.js` y comprobar que el sitio refleja los cuatro cambios.

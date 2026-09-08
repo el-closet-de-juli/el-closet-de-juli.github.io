@@ -1,5 +1,5 @@
 # ============================================================================
-# importar.ps1 - Mueve lo que admin.html descargo a su lugar en el proyecto.
+# importar.ps1 - Mueve lo que panel-9f3a2c.html descargo a su lugar en el proyecto.
 # ----------------------------------------------------------------------------
 # Uso:   .\importar.ps1
 #
