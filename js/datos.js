@@ -25,7 +25,7 @@ const CONFIG = {
   negocio: "El Closet de Juli",
 
   // Frase corta bajo el titulo. Una sola linea.
-  lema: "Ropa seleccionada a mano, en el Gran Area Metropolitana",
+  lema: "Ropa con historia, elegida a mano",
 
   // URL publica del sitio. Se usa para armar los enlaces que se comparten.
   // Sin barra al final.

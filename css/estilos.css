@@ -154,17 +154,8 @@ button:focus-visible {
   margin: 0.35rem 0 0;
 }
 
-.nota-uso {
-  max-width: 32rem;
-  margin: 0.95rem auto 0;
-  font-size: 0.78rem;
-  line-height: 1.5;
-  color: var(--tinta-suave);
-}
-.nota-uso strong { font-weight: 500; color: var(--tinta); }
-
 .boton-linea {
-  margin-top: 1.25rem;
+  margin-top: 1.1rem;
   background: none;
   border: 1px solid var(--linea);
   color: var(--tinta);
@@ -600,7 +591,20 @@ button:focus-visible {
 }
 .pie p { margin: 0.25rem 0; }
 .pie a { color: var(--acento-oscuro); }
-.pie__legal { font-size: 0.75rem; letter-spacing: 0.05em; }
+.pie__legal { font-size: 0.75rem; letter-spacing: 0.05em; margin-top: 0.6rem; }
+
+/* Nota de uso: vive en el pie. Se separa con una linea fina para que se lea
+   como explicacion de cierre y no como parte de la firma. */
+.nota-uso {
+  max-width: 30rem;
+  margin: 0 auto 1.5rem;
+  padding-bottom: 1.35rem;
+  border-bottom: 1px solid var(--linea);
+  font-size: 0.8rem;
+  line-height: 1.55;
+  color: var(--tinta-suave);
+}
+.nota-uso strong { font-weight: 500; color: var(--tinta); }
 
 .flotante {
   position: fixed;
