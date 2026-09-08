@@ -64,23 +64,6 @@ const PRENDAS = [
   },
 
   {
-    ref: "003",
-    nombre: "Vestido floral manga corta",
-    categoria: "Vestidos",
-    talla: "M",
-    medidas: "Busto 92 cm · Largo 108 cm",
-    estado: "Muy buen estado",
-    descripcion: "Estampado floral pequeno sobre fondo crema. Forro completo, cierre invisible lateral.",
-    precio: 12500,
-    situacion: "disponible",
-    fotos: [
-      "img/productos/003-1.webp",
-      "img/productos/003-2.webp"
-    ],
-    ingreso: "2026-09-04"
-  },
-
-  {
     ref: "005",
     nombre: "Botines de cuero",
     categoria: "Zapatos",
@@ -130,6 +113,23 @@ const PRENDAS = [
       "img/productos/004-1.webp"
     ],
     ingreso: "2026-09-03"
+  },
+
+  {
+    ref: "003",
+    nombre: "Vestido floral manga corta",
+    categoria: "Vestidos",
+    talla: "M",
+    medidas: "Busto 92 cm · Largo 108 cm",
+    estado: "Muy buen estado",
+    descripcion: "Estampado floral pequeno sobre fondo crema. Forro completo, cierre invisible lateral.",
+    precio: 12500,
+    situacion: "vendido",
+    fotos: [
+      "img/productos/003-1.webp",
+      "img/productos/003-2.webp"
+    ],
+    ingreso: "2026-09-04"
   },
 
   {
