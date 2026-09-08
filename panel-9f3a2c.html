@@ -185,8 +185,16 @@
   </p>
 
   <div id="sin-datos" class="errores" hidden>
-    No se encontro <code>js/datos.js</code>. El panel arranca con un catalogo
-    vacio: se puede trabajar igual y generar el archivo al final.
+    <strong>El panel arranco sin catalogo.</strong>
+    No se pudo leer <code>js/datos.js</code> junto a esta pagina — pasa al abrir
+    el panel desde un archivo suelto o desde otro dispositivo.
+    <br><br>
+    <strong>No cargues prendas todavia.</strong> Publicar reemplaza el catalogo
+    completo del sitio: si empezas desde vacio, se irian las prendas que ya
+    estan publicadas.
+    <br><br>
+    Completa la seccion <em>Conexion con GitHub</em> y toca
+    <strong>Traer catalogo del sitio</strong>. Despues de eso, seguir normal.
   </div>
 
   <!-- ============================ CONEXION ============================ -->
@@ -226,6 +234,7 @@
 
     <div class="herramientas" style="margin-top:1rem">
       <button type="button" class="btn" id="btn-probar">Probar conexion</button>
+      <button type="button" class="btn" id="btn-cargar-remoto">Traer catalogo del sitio</button>
       <button type="button" class="btn btn--peligro" id="btn-olvidar">Olvidar token</button>
     </div>
 
@@ -1397,6 +1406,106 @@
     });
   }
 
+  function base64AUtf8(b64) {
+    var binario = atob(String(b64).replace(/\s/g, ""));
+    var bytes = new Uint8Array(binario.length);
+    for (var i = 0; i < binario.length; i++) { bytes[i] = binario.charCodeAt(i); }
+    return new TextDecoder("utf-8").decode(bytes);
+  }
+
+  /* Lee js/datos.js del repositorio por la API.
+     Esta es la fuente de verdad del catalogo. No depende de que la etiqueta
+     <script src="js/datos.js"> haya podido cargar el archivo, asi que
+     funciona igual desde el sitio publicado, desde un archivo local en el
+     telefono o desde otro dispositivo.
+
+     El contenido se evalua con new Function. Viene del propio repositorio, al
+     que solo se llega con el token: quien pueda escribir ahi ya controla el
+     sitio entero, de modo que esto no agrega superficie de ataque. */
+  function leerCatalogoRemoto() {
+    return api(base("/contents/js/datos.js?ref=" + encodeURIComponent(estado.gh.branch)))
+      .then(function (r) {
+        var texto = base64AUtf8(r.content);
+        var leer = new Function(
+          texto + "\n; return { CONFIG: CONFIG, CATEGORIAS: CATEGORIAS, PRENDAS: PRENDAS };"
+        );
+        var d = leer();
+        if (!Array.isArray(d.PRENDAS)) {
+          throw new Error("El datos.js del sitio no tiene una lista de prendas.");
+        }
+        return d;
+      });
+  }
+
+  function adoptarCatalogo(d) {
+    if (d.CONFIG) {
+      Object.keys(estado.config).forEach(function (k) {
+        if (d.CONFIG[k] !== undefined) { estado.config[k] = d.CONFIG[k]; }
+      });
+    }
+    if (Array.isArray(d.CATEGORIAS) && d.CATEGORIAS.length) {
+      estado.categorias = d.CATEGORIAS.slice();
+    }
+    estado.prendas = JSON.parse(JSON.stringify(d.PRENDAS));
+    estado.colaFotos = {};
+    estado.sucio = false;
+    pintarConfig();
+    pintarCategorias();
+    pintarLista();
+    $("sin-datos").hidden = true;
+  }
+
+  /* Trae el catalogo publicado y reemplaza lo que haya en el panel.
+     La confirmacion se hace en la propia pagina y no con confirm(): un
+     dialogo nativo del navegador es facil de descartar sin leerlo, y en el
+     telefono aparece fuera de contexto. */
+  function traerCatalogo() {
+    var caja = $("estado-conexion");
+    caja.textContent = "";
+    caja.appendChild(crear("p", "ayuda", "Trayendo el catalogo del sitio..."));
+
+    leerCatalogoRemoto().then(function (d) {
+      adoptarCatalogo(d);
+      caja.textContent = "";
+      var ok = crear("div", "advertencias");
+      ok.style.borderColor = "var(--detalle)";
+      ok.appendChild(crear("strong", null, "Catalogo cargado: " + estado.prendas.length + " prendas."));
+      caja.appendChild(ok);
+      avisar("Catalogo del sitio cargado");
+    }).catch(function (e) {
+      caja.textContent = "";
+      caja.appendChild(crear("div", "errores", "No se pudo traer el catalogo: " + e.message));
+    });
+  }
+
+  $("btn-cargar-remoto").addEventListener("click", function () {
+    guardarConexion();
+    var caja = $("estado-conexion");
+    caja.textContent = "";
+
+    if (!hayConexion()) {
+      caja.appendChild(crear("div", "errores", "Primero hay que completar los datos de conexion."));
+      return;
+    }
+
+    // Con cambios sin publicar, se pide una confirmacion explicita en pantalla.
+    if (estado.sucio) {
+      var alerta = crear("div", "advertencias");
+      alerta.appendChild(crear("strong", null, "Hay cambios sin publicar."));
+      alerta.appendChild(crear("div", null,
+        "Traer el catalogo del sitio los descarta, incluidas las fotos en cola."));
+      var boton = crear("button", "btn btn--peligro", "Descartar y traer el catalogo");
+      boton.type = "button";
+      boton.style.marginTop = "0.6rem";
+      boton.addEventListener("click", traerCatalogo);
+      alerta.appendChild(boton);
+      caja.appendChild(alerta);
+      return;
+    }
+
+    traerCatalogo();
+  });
+
   $("btn-probar").addEventListener("click", function () {
     guardarConexion();
     var caja = $("estado-conexion");
@@ -1418,6 +1527,21 @@
         estado.gh.owner + "/" + estado.gh.repo + " · rama " + estado.gh.branch +
         " · ultimo commit " + ref.object.sha.slice(0, 7)));
       caja.appendChild(ok);
+
+      // Si el panel arranco sin catalogo (el archivo local no cargo, se abrio
+      // desde otro dispositivo, etc.), traerlo del sitio de una vez. Sin esto
+      // se empieza a trabajar sobre un catalogo vacio sin notarlo.
+      if (estado.prendas.length === 0) {
+        var aviso = crear("p", "ayuda", "El panel esta vacio: trayendo el catalogo del sitio...");
+        caja.appendChild(aviso);
+        return leerCatalogoRemoto().then(function (d) {
+          adoptarCatalogo(d);
+          aviso.textContent = "Catalogo del sitio cargado: " + estado.prendas.length + " prendas.";
+        }).catch(function (e2) {
+          aviso.textContent = "No se pudo traer el catalogo del sitio: " + e2.message;
+          aviso.className = "errores";
+        });
+      }
     }).catch(function (e) {
       caja.textContent = "";
       caja.appendChild(crear("div", "errores", e.message));
@@ -1459,6 +1583,63 @@
       });
       resumen.appendChild(crear("p", "bloque__nota", "Se van a subir estos archivos en un solo commit:"));
       resumen.appendChild(lista);
+
+      // Guardia contra el borrado accidental. Publicar REEMPLAZA el catalogo
+      // entero: si el panel arranco vacio o perdio prendas, esto lo detecta
+      // antes y no despues.
+      $("btn-publicar-confirmar").disabled = true;
+      var esperando = crear("p", "ayuda", "Comparando con el catalogo publicado...");
+      resumen.appendChild(esperando);
+
+      leerCatalogoRemoto().then(function (d) {
+        var remotas = d.PRENDAS.length;
+        var locales = estado.prendas.length;
+        esperando.remove();
+
+        if (locales >= remotas) {
+          resumen.appendChild(crear("p", "ayuda",
+            "En el sitio hay " + remotas + " prenda(s); se van a publicar " + locales + "."));
+          $("btn-publicar-confirmar").disabled = false;
+          return;
+        }
+
+        // Se publicarian MENOS prendas de las que hay: puede ser intencional
+        // (se borraron) o el sintoma de haber empezado sobre un panel vacio.
+        var alerta = crear("div", "errores");
+        alerta.appendChild(crear("strong", null, "Cuidado: esto quita prendas del sitio."));
+        alerta.appendChild(crear("div", null,
+          "En el sitio hay " + remotas + " prenda(s) y se publicarian " + locales +
+          ". Publicar reemplaza el catalogo completo: las " + (remotas - locales) +
+          " que faltan desaparecen."));
+        alerta.appendChild(crear("div", null,
+          locales === 0
+            ? "El panel esta vacio. Casi seguro no cargo el catalogo: usar “Traer catalogo del sitio” antes de seguir."
+            : "Si el borrado es a proposito, escribir QUITAR para habilitar el boton."));
+        resumen.appendChild(alerta);
+
+        if (locales > 0) {
+          var campo = crear("div", "campo");
+          var etiqueta = crear("label", null, "Escribir QUITAR para confirmar");
+          etiqueta.setAttribute("for", "publicar-confirmar-texto");
+          var input = document.createElement("input");
+          input.type = "text";
+          input.id = "publicar-confirmar-texto";
+          input.autocomplete = "off";
+          input.addEventListener("input", function () {
+            $("btn-publicar-confirmar").disabled = this.value.trim().toUpperCase() !== "QUITAR";
+          });
+          campo.appendChild(etiqueta);
+          campo.appendChild(input);
+          resumen.appendChild(campo);
+        }
+      }).catch(function (e) {
+        esperando.remove();
+        // Sin poder comparar no se bloquea, pero se dice claramente.
+        resumen.appendChild(crear("div", "advertencias",
+          "No se pudo leer el catalogo publicado para compararlo (" + e.message +
+          "). Revisar el numero de prendas de arriba antes de confirmar."));
+        $("btn-publicar-confirmar").disabled = false;
+      });
     }
 
     $("publicar-mensaje").value = "";
